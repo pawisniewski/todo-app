@@ -1,11 +1,9 @@
 const express = require('express');
 const socket = require('socket.io');
-const cors = require('cors');
 
-const tasks = [];
+let tasks = [];
 
 const app = express();
-app.use(cors());
 
 app.use((req, res) => {
   res.status(404).send({ message: 'Not found...' });
@@ -22,19 +20,21 @@ io.on('connection', (socket) => {
   socket.emit('updateData', tasks);
   
   socket.on('addTask', (task) => {
-    console.log('Oh, I\'ve got task ' + task + ' from ' + socket.id);
+    console.log('Oh, I\'ve got task ' + task.id + ' from ' + socket.id);
     tasks.push(task);
     socket.broadcast.emit('addTask', task);
+    console.log('All tasks', tasks);
   });
 
-  socket.on('removeTask', (i) => {
-    console.log(socket.id + ' removes task ' + i);
-    tasks.splice(i,1);
-    socket.broadcast.emit('removeTask', i);
+  socket.on('removeTask', (id) => {
+    console.log(socket.id + ' removes task ' + id);
+    tasks = tasks.filter(task => task.id !== id);
+    socket.broadcast.emit('removeTask', id);
+    console.log('All tasks', tasks);
   });
 
   socket.on('disconnect', () => {
     console.log('Oh, socket ' + socket.id + ' has left')
   });
-  
+
 });

@@ -1,5 +1,6 @@
 import React from 'react';
 import io from 'socket.io-client';
+import { v4 as uuidv4 } from 'uuid';
 
 class App extends React.Component {
 
@@ -27,7 +28,7 @@ class App extends React.Component {
 
   removeTask = (id, localRemove = false) => {
     this.setState({
-      tasks: this.state.tasks.filter((task, i) => i !== id),
+      tasks: this.state.tasks.filter(task => task.id !== id),
     });
     if (localRemove) {
       this.socket.emit('removeTask', id);
@@ -36,9 +37,12 @@ class App extends React.Component {
 
   submitForm = (event) => {
     event.preventDefault();
-    if (this.state.taskName) { 
-      this.addTask(this.state.taskName);
-      this.socket.emit('addTask', this.state.taskName);
+    
+    if (this.state.taskName) {
+      const id = uuidv4(); 
+      const newTask = {id, name: this.state.taskName};
+      this.addTask(newTask);
+      this.socket.emit('addTask', newTask);
       this.setState({taskName: ''});
     }
   };
@@ -55,10 +59,10 @@ class App extends React.Component {
           <h2>Tasks</h2>
     
           <ul className="tasks-section__list" id="tasks-list">
-            {this.state.tasks.map((task, i) => (
-              <li key={i} className="task">
-                {task}
-                <button onClick={() => this.removeTask(i, true)} className="btn btn--red">
+            {this.state.tasks.map(({ id, name }) => (
+              <li key={id} className="task">
+                {name}
+                <button onClick={() => this.removeTask(id, true)} className="btn btn--red">
                   Remove
                 </button>
               </li>))}
@@ -67,7 +71,7 @@ class App extends React.Component {
           <form id="add-task-form" onSubmit={event => this.submitForm(event)}>
             <input 
               className="text-input" 
-              autocomplete="off" 
+              autoComplete="off" 
               type="text" 
               placeholder="Type your description" 
               id="task-name" 

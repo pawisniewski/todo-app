@@ -1,7 +1,7 @@
 const express = require('express');
 const socket = require('socket.io');
 
-let tasks = [];
+const tasks = [];
 
 const app = express();
 
@@ -28,7 +28,7 @@ io.on('connection', (socket) => {
 
   socket.on('removeTask', (id) => {
     console.log(socket.id + ' removes task ' + id);
-    tasks = tasks.filter(task => task.id !== id);
+    tasks.splice(tasks.findIndex(task => task.id === id),1);
     socket.broadcast.emit('removeTask', id);
     console.log('All tasks', tasks);
   });
